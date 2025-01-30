@@ -1,0 +1,100 @@
+import sys
+import os
+import shutil
+import threading
+from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QPushButton, QFileDialog, QLabel, QListWidget, 
+                             QProgressBar, QMessageBox)
+
+class FileTransferTool(QWidget):
+    def __init__(self):
+        super().__init__()
+        self.initUI()
+    
+    def initUI(self):
+        self.setWindowTitle("Local File Transfer Tool")
+        self.setGeometry(100, 100, 500, 400)
+        
+        layout = QVBoxLayout()
+        
+        self.source_label = QLabel("Source Folder: Not Selected")
+        self.dest_label = QLabel("Destination Folder: Not Selected")
+        
+        self.select_source_btn = QPushButton("Select Source Folder")
+        self.select_dest_btn = QPushButton("Select Destination Folder")
+        self.start_transfer_btn = QPushButton("Start Transfer")
+        
+        self.progress = QProgressBar()
+        self.file_list = QListWidget()
+        
+        self.select_source_btn.clicked.connect(self.select_source)
+        self.select_dest_btn.clicked.connect(self.select_destination)
+        self.start_transfer_btn.clicked.connect(self.start_transfer)
+        
+        layout.addWidget(self.source_label)
+        layout.addWidget(self.select_source_btn)
+        layout.addWidget(self.dest_label)
+        layout.addWidget(self.select_dest_btn)
+        layout.addWidget(self.file_list)
+        layout.addWidget(self.progress)
+        layout.addWidget(self.start_transfer_btn)
+        
+        self.setLayout(layout)
+        
+        self.source_folder = ""
+        self.dest_folder = ""
+    
+    def select_source(self):
+        folder = QFileDialog.getExistingDirectory(self, "Select Source Folder")
+        if folder:
+            self.source_folder = folder
+            self.source_label.setText(f"Source: {folder}")
+            self.load_files()
+    
+    def select_destination(self):
+        folder = QFileDialog.getExistingDirectory(self, "Select Destination Folder")
+        if folder:
+            self.dest_folder = folder
+            self.dest_label.setText(f"Destination: {folder}")
+    
+    def load_files(self):
+        self.file_list.clear()
+        if self.source_folder:
+            files = os.listdir(self.source_folder)
+            for file in files:
+                self.file_list.addItem(file)
+    
+    def start_transfer(self):
+        if not self.source_folder or not self.dest_folder:
+            QMessageBox.warning(self, "Error", "Please select both source and destination folders")
+            return
+        
+        threading.Thread(target=self.transfer_files, daemon=True).start()
+    
+    def transfer_files(self):
+        files = os.listdir(self.source_folder)
+        total_files = len(files)
+        
+        if total_files == 0:
+            QMessageBox.information(self, "Info", "No files to transfer.")
+            return
+        
+        self.progress.setMaximum(total_files)
+        
+        for i, file in enumerate(files):
+            src_path = os.path.join(self.source_folder, file)
+            dest_path = os.path.join(self.dest_folder, file)
+            try:
+                shutil.copy2(src_path, dest_path)
+            except Exception as e:
+                print(f"Error copying {file}: {e}")
+            
+            self.progress.setValue(i + 1)
+        
+        QMessageBox.information(self, "Success", "File transfer completed!")
+
+if __name__ == "__main__":
+    app = QApplication(sys.argv)
+    window = FileTransferTool()
+    window.show()
+    sys.exit(app.exec_())
+
