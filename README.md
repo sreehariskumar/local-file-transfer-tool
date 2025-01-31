@@ -11,7 +11,7 @@ A simple GUI-based tool to copy files between local directories.
 ## Installation
 
 1. Clone this repository:
-git clone https://github.com/yourusername/local-file-transfer-tool.git cd local-file-transfer-tool
+git clone https://github.com/sreehariskumar/local-file-transfer-tool.git && cd local-file-transfer-tool
 
 
 2. Install dependencies:
