@@ -1,6 +1,7 @@
 import sys
 import os
 import shutil
+import threading
 from PyQt5.QtWidgets import (QApplication, QWidget, QVBoxLayout, QPushButton, QFileDialog, QLabel, QListWidget,
                              QProgressBar, QMessageBox, QHBoxLayout)
 from PyQt5.QtCore import Qt, QThread, pyqtSignal
@@ -58,20 +59,12 @@ class FileTransferTool(QWidget):
         
         self.source_panel = QVBoxLayout()
         self.source_label = QLabel("Source: Not Selected")
-        self.select_source_btn = QPushButton("Choose Files/Folders")
+        self.select_source_btn = QPushButton("Select Files/Folders")
         self.file_list = QListWidget()
-        self.remove_selected_btn = QPushButton("Remove Selected")
-        self.clear_btn = QPushButton("Clear All")
-        
         self.select_source_btn.clicked.connect(self.select_source)
-        self.remove_selected_btn.clicked.connect(self.remove_selected)
-        self.clear_btn.clicked.connect(self.clear_selection)
-        
         self.source_panel.addWidget(self.source_label)
         self.source_panel.addWidget(self.select_source_btn)
         self.source_panel.addWidget(self.file_list)
-        self.source_panel.addWidget(self.remove_selected_btn)
-        self.source_panel.addWidget(self.clear_btn)
         
         self.dest_panel = QVBoxLayout()
         self.dest_label = QLabel("Destination: Not Selected")
@@ -128,17 +121,6 @@ class FileTransferTool(QWidget):
         self.source_label.setText("Source: Selected")
         self.load_files()
     
-    def remove_selected(self):
-        selected_items = self.file_list.selectedItems()
-        for item in selected_items:
-            self.source_files.remove(item.text())
-            self.file_list.takeItem(self.file_list.row(item))
-    
-    def clear_selection(self):
-        self.source_files.clear()
-        self.file_list.clear()
-        self.source_label.setText("Source: Not Selected")
-    
     def select_destination(self):
         folder = QFileDialog.getExistingDirectory(self, "Select Destination Folder")
         if folder:
@@ -180,4 +162,3 @@ if __name__ == "__main__":
     window = FileTransferTool()
     window.show()
     sys.exit(app.exec_())
-
